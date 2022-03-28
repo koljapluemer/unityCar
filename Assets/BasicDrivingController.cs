@@ -4,12 +4,14 @@ using System.Collections.Generic;
 using UnityEngine;
 
 public class BasicDrivingController : MonoBehaviour
+
+// Script Inspiration from <https://www.youtube.com/watch?v=Z4HA8zJhGEk>
 {
     private float horizontalInput;
     private float verticalInput;
     private float steerAngle;
     private bool isBreaking;
-
+    private bool hasNitroOn;
     public WheelCollider frontLeftWheelCollider;
     public WheelCollider frontRightWheelCollider;
     public WheelCollider rearLeftWheelCollider;
@@ -23,6 +25,10 @@ public class BasicDrivingController : MonoBehaviour
     public float motorForce = 50f;
     public float brakeForce = 0f;
 
+
+    public float resetDistance = 10f;
+    public float nitroSpeed = 100f;
+
     private float _originalRotX;
     private float _originalRotZ;
 
@@ -32,6 +38,7 @@ public class BasicDrivingController : MonoBehaviour
         HandleMotor();
         HandleSteering();
         UpdateWheels();
+        HandleNitro();
     }
 
     private void GetInput()
@@ -39,14 +46,16 @@ public class BasicDrivingController : MonoBehaviour
         horizontalInput = Input.GetAxis("Horizontal");
         verticalInput = Input.GetAxis("Vertical");
         isBreaking = Input.GetKey(KeyCode.Space);
+        hasNitroOn = Input.GetKey(KeyCode.LeftShift);
 
-              if (Input.GetKeyUp(KeyCode.R))
-     {
-          // Move the rigidbody up by 3 metres
-         transform.Translate(0, 3, 0, Space.World);
-         // Reset the rotation to what it was when the car was initialized
-         transform.rotation = (Quaternion.Euler(new Vector3(_originalRotX, transform.rotation.y, _originalRotZ)));
-     }
+        // Reset the car
+        if (Input.GetKey(KeyCode.R))
+        {
+            // Move the rigidbody up by 3 metres
+            transform.Translate(0, resetDistance, 0, Space.World);
+            // Reset the rotation to what it was when the car was initialized
+            transform.rotation = (Quaternion.Euler(new Vector3(_originalRotX, transform.rotation.y, _originalRotZ)));
+        }
     }
 
     private void HandleSteering()
@@ -61,7 +70,7 @@ public class BasicDrivingController : MonoBehaviour
         frontLeftWheelCollider.motorTorque = verticalInput * motorForce;
         frontRightWheelCollider.motorTorque = verticalInput * motorForce;
 
-        brakeForce = isBreaking ? 3000f : 0f;
+        brakeForce = isBreaking ? brakeForce : 0f;
         frontLeftWheelCollider.brakeTorque = brakeForce;
         frontRightWheelCollider.brakeTorque = brakeForce;
         rearLeftWheelCollider.brakeTorque = brakeForce;
@@ -85,6 +94,10 @@ public class BasicDrivingController : MonoBehaviour
         trans.position = pos;
     }
 
-
-
+    private void HandleNitro() {
+        if (hasNitroOn) {
+            // check if at least one wheel collider touches the ground
+            transform.position += transform.forward * nitroSpeed;
+        }
+    }
 }
